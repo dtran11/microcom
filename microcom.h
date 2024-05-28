@@ -73,6 +73,7 @@ extern int debug;
 extern int opt_force;
 extern int listenonly;
 extern char *answerback;
+extern int enable_timestamp;
 
 struct cmd {
 	char *name;

@@ -21,11 +21,14 @@
 
 #include "microcom.h"
 #include <stdbool.h>
+#include <time.h>
 
 #define BUFSIZE 1024
 
 static int logfd = -1;
+static bool b_new_line = false;
 char *answerback;
+int enable_timestamp = 0;
 
 static void write_receive_buf(const unsigned char *buf, int len)
 {
@@ -39,29 +42,38 @@ static void write_receive_buf(const unsigned char *buf, int len)
 
 static int handle_receive_buf(struct ios_ops *ios, unsigned char *buf, int len)
 {
+	struct timespec ts = {0,0};
+	char timebuf[20];
 	unsigned char *sendbuf = buf;
 
 	while (len) {
 		switch (*buf) {
-		case 5:
-			write_receive_buf(sendbuf, buf - sendbuf);
-			if (answerback)
-				ios->write(ios, answerback, strlen(answerback));
-			else
-				write_receive_buf(buf, 1);
-
+		case '\n':
+			b_new_line = true;
+			write_receive_buf(buf, 1);
 			buf += 1;
 			len -= 1;
 			sendbuf = buf;
 			break;
+
 		default:
+			if (enable_timestamp && b_new_line) {
+				(void)clock_gettime(CLOCK_MONOTONIC, &ts);
+				int timelen = snprintf(timebuf, sizeof(timebuf), "[%5lu.%06lu] ", ts.tv_sec, ts.tv_nsec/1000);
+				if (timelen > 0) {
+					write_receive_buf(timebuf, timelen);
+				}
+				b_new_line = false;
+			}
+
+			write_receive_buf(buf, 1);
 			buf += 1;
 			len -= 1;
 			break;
 		}
 	}
 
-	write_receive_buf(sendbuf, buf - sendbuf);
+	//write_receive_buf(sendbuf, buf - sendbuf);
 	return 0;
 }
 

@@ -101,6 +101,7 @@ void main_usage(int exitcode, char *str, char *dev)
 		"                                         from stdin\n"
 		"    -a,  --answerback=<str>              specify the answerback string sent as response to\n"
 		"                                         an ENQ (ASCII 0x05) Character\n"
+		"    -m, --timestamp                      prepend timestamp to each line\n"
 		"    -v, --version                        print version string\n"
 		"    -h, --help                           This help\n",
 		DEFAULT_DEVICE, DEFAULT_BAUDRATE,
@@ -136,10 +137,11 @@ int main(int argc, char *argv[])
 		{ "listenonly", no_argument, NULL, 'o'},
 		{ "answerback", required_argument, NULL, 'a'},
 		{ "version", no_argument, NULL, 'v' },
+		{ "timestamp", no_argument, NULL, 'm' },
 		{ },
 	};
 
-	while ((opt = getopt_long(argc, argv, "hp:s:t:c:dfl:oi:a:v", long_options, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, "hp:s:t:c:dfl:oi:a:vm", long_options, NULL)) != -1) {
 		switch (opt) {
 			case '?':
 				main_usage(1, "", "");
@@ -179,6 +181,9 @@ int main(int argc, char *argv[])
 				break;
 			case 'a':
 				answerback = optarg;
+				break;
+			case 'm':
+				enable_timestamp = 1;
 				break;
 		}
 	}
