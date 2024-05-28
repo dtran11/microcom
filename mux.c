@@ -42,8 +42,9 @@ static void write_receive_buf(const unsigned char *buf, int len)
 
 static int handle_receive_buf(struct ios_ops *ios, unsigned char *buf, int len)
 {
-	struct timespec ts = {0,0};
-	char timebuf[20];
+	struct tm* tm_info;
+  	struct timeval tv;
+	char timebuf[32];
 	unsigned char *sendbuf = buf;
 
 	while (len) {
@@ -58,9 +59,12 @@ static int handle_receive_buf(struct ios_ops *ios, unsigned char *buf, int len)
 
 		default:
 			if (enable_timestamp && b_new_line) {
-				(void)clock_gettime(CLOCK_MONOTONIC, &ts);
-				int timelen = snprintf(timebuf, sizeof(timebuf), "[%5lu.%06lu] ", ts.tv_sec, ts.tv_nsec/1000);
+				gettimeofday(&tv, NULL);
+				tm_info = localtime(&tv.tv_sec);
+				int timelen = strftime(timebuf, sizeof(timebuf), "[%y%m%d %H:%M:%S", tm_info);
 				if (timelen > 0) {
+					write_receive_buf(timebuf, timelen);
+					timelen = snprintf(timebuf, sizeof(timebuf), ".%03d] ", tv.tv_usec/1000);
 					write_receive_buf(timebuf, timelen);
 				}
 				b_new_line = false;
