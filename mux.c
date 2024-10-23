@@ -29,6 +29,7 @@ static int logfd = -1;
 static bool b_new_line = false;
 char *answerback;
 int enable_timestamp = 0;
+int enable_rs485 = 0;
 
 static void write_receive_buf(const unsigned char *buf, int len)
 {

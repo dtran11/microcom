@@ -21,6 +21,7 @@
 ****************************************************************************/
 #include "config.h"
 
+#include <linux/serial.h>
 #include <limits.h>
 #include <sys/file.h>
 #include <sys/ioctl.h>
@@ -77,6 +78,39 @@ static int serial_set_handshake_line(struct ios_ops *ios, int pin, int enable)
 		ret = ioctl(ios->fd, TIOCMBIS, &flag);
 	else
 		ret = ioctl(ios->fd, TIOCMBIC, &flag);
+
+	return ret;
+}
+
+static int serial_enable_rs485(int fd)
+{
+	struct serial_rs485 rs485conf = {0};
+
+	/* Enable RS485 mode: */
+	rs485conf.flags |= SER_RS485_ENABLED;
+
+	/* Set logical level for RTS pin equal to 1 when sending: */
+	rs485conf.flags |= SER_RS485_RTS_ON_SEND;
+	/* or, set logical level for RTS pin equal to 0 when sending: */
+	//rs485conf.flags &= ~(SER_RS485_RTS_ON_SEND);
+
+	/* Set logical level for RTS pin equal to 1 after sending: */
+	//rs485conf.flags |= SER_RS485_RTS_AFTER_SEND;
+	/* or, set logical level for RTS pin equal to 0 after sending: */
+	rs485conf.flags &= ~(SER_RS485_RTS_AFTER_SEND);
+
+	rs485conf.delay_rts_before_send = 0;
+	rs485conf.delay_rts_after_send = 0;
+
+	/* Set this flag if you want to receive data even while sending data */
+	//rs485conf.flags |= SER_RS485_RX_DURING_TX;
+
+	int ret = ioctl(fd, TIOCSRS485, &rs485conf);
+	if (ret < 0) {
+		printf("Could not set RS485 mode\n");
+	} else {
+		printf("RS485 Enabled\n");
+	}
 
 	return ret;
 }
@@ -228,7 +262,7 @@ static void serial_exit(struct ios_ops *ios)
 	free(ios);
 }
 
-struct ios_ops * serial_init(char *device)
+struct ios_ops * serial_init(char *device, int enable_rs485)
 {
 	struct termios pts;	/* termios settings on port */
 	struct ios_ops *ops;
@@ -267,6 +301,9 @@ struct ios_ops * serial_init(char *device)
 	memcpy(&pots, &pts, sizeof (pots));
 	init_comm(&pts);
 	tcsetattr(fd, TCSANOW, &pts);
+	if (enable_rs485) {
+		serial_enable_rs485(fd);
+	}
 	printf("connected to %s\n", device);
 
 	return ops;

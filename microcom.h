@@ -59,7 +59,7 @@ void init_terminal(void);
 void restore_terminal(void);
 
 struct ios_ops *telnet_init(char *hostport);
-struct ios_ops *serial_init(char *dev);
+struct ios_ops *serial_init(char *dev, int enable_rs485);
 struct ios_ops *can_init(char *interfaceid);
 
 void microcom_exit(int signal);
@@ -74,6 +74,7 @@ extern int opt_force;
 extern int listenonly;
 extern char *answerback;
 extern int enable_timestamp;
+extern int enable_rs485;
 
 struct cmd {
 	char *name;

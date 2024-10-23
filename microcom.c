@@ -138,10 +138,11 @@ int main(int argc, char *argv[])
 		{ "answerback", required_argument, NULL, 'a'},
 		{ "version", no_argument, NULL, 'v' },
 		{ "timestamp", no_argument, NULL, 'm' },
+		{ "rs485", no_argument, NULL, 'r' },
 		{ },
 	};
 
-	while ((opt = getopt_long(argc, argv, "hp:s:t:c:dfl:oi:a:vm", long_options, NULL)) != -1) {
+	while ((opt = getopt_long(argc, argv, "hp:s:t:c:dfl:oi:a:vmr", long_options, NULL)) != -1) {
 		switch (opt) {
 			case '?':
 				main_usage(1, "", "");
@@ -185,6 +186,9 @@ int main(int argc, char *argv[])
 			case 'm':
 				enable_timestamp = 1;
 				break;
+			case 'r':
+				enable_rs485 = 1;
+				break;
 		}
 	}
 
@@ -210,7 +214,7 @@ int main(int argc, char *argv[])
 		exit(EXIT_FAILURE);
 #endif
 	} else
-		ios = serial_init(device);
+		ios = serial_init(device, enable_rs485);
 
 	if (!ios)
 		exit(1);
